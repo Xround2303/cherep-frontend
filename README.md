@@ -1,2 +1,0 @@
-# cherep-frontend
-test repo
