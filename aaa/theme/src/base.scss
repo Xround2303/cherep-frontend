@@ -1,0 +1,10 @@
+html {
+    @import './_fonts';
+
+    font-size: 14px;
+    font-family: 'Inter var', sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    font-variation-settings: normal;
+    --font-family: 'Inter var', sans-serif;
+    --font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}

@@ -1,0 +1,1 @@
+export type IOnShowUserHistory = (userId: number) => any

@@ -1,0 +1,29 @@
+{
+  "version": "Version",
+  "versionsModal": {
+    "versions": "Versions",
+    "name": "Name"
+  },
+  "close": "Close",
+  "collapseSidebar": "Collapse sidebar",
+  "logout": "Abandon ship",
+  "accessDenied": {
+    "title": "Access denied",
+    "message": "Contact your system administrator if access is required."
+  },
+  "blankPage": {
+    "title": "Welcome",
+    "message": "You can choose the default start page in your Profile"
+  },
+  "fields": {
+    "loginEmail": "Login (Email)",
+    "login": "Login",
+    "password": "Password",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm password",
+    "domain": "Domain"
+  },
+  "buttons": {
+    "save": "Save"
+  }
+}

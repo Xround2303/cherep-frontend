@@ -1,0 +1,132 @@
+default:
+  image: mrwaip/ui-kit-node:1.0.0
+
+  # Validate that the repository contains a package.json and extract a few values from it.
+  before_script:
+    # configuration for NPM proxy
+    - printf "registry=http://rpm.svc/repository/npm-all/\n" > .npmrc
+    - printf "@svyazcom:registry=http://rpm.svc/repository/npm-stable/\n" >> .npmrc
+
+    # получаем версию
+    - VER=$(git describe --match "[0-9]*" --abbrev=9 --tags HEAD --always)
+    - PACKAGE_VERSION=`echo $VER | sed -r 's/[-]+/./g' | sed -r 's/\.[^\.]*$//'`
+    - PACKAGE_EXT_VERSION=`echo $VER | sed -r 's/[-]+/./g'`
+    - echo ${VER} ${PACKAGE_VERSION} ${PACKAGE_EXT_VERSION}
+
+stages:
+  - publish
+  - build
+  - deploy
+
+# Публикация пакета для установки в проекты
+publish_package:
+  stage: publish
+  image: registry.svc/web/node:20
+  variables:
+    GIT_STRATEGY: clone
+    GIT_SUBMODULE_STRATEGY: recursive
+    PACKAGE_NAME: 'ui-kit-web'
+  script:
+    - printf "email=kiselev@svyazcom.ru\n" >> .npmrc
+    - printf "always-auth=true\n" >> .npmrc
+    - printf "//rpm.svc/repository/npm-stable/:_auth=\"${CI_REGISTRY_AUTH}\"\n" >> .npmrc
+    - npm install
+    - npm install @vue/cli vite
+    - npm run build
+    # integity checks & variables
+    - |
+      if [[ ! -f package.json ]]; then
+        echo "No package.json found! A package.json file is required to publish a package to NPM registry."
+        exit 1
+      fi
+    # прописываем насильно версию в package.json
+    # (необходимо сделать это прежде всего, иначе npm ругнётся что Git working directory is not clean)
+    - npm --no-git-tag-version version $PACKAGE_VERSION
+
+    - NPM_PACKAGE_NAME=$(node -p "require('./package.json').name")
+    - NPM_PACKAGE_VERSION=$(node -p "require('./package.json').version")
+    - |
+      if [[ $CI_COMMIT_BRANCH != "master" ]]; then
+        npm --no-git-tag-version --allow-same-version version "${NPM_PACKAGE_VERSION}-test"
+        NPM_PACKAGE_VERSION=$(node -p "require('./package.json').version")
+      fi
+    - |
+      {
+        npm publish --registry ${NPM_REGISTRY} &&
+        echo "Successfully published version ${NPM_PACKAGE_VERSION} of ${NPM_PACKAGE_NAME} to NPM registry ${NPM_REGISTRY}"
+      } || {
+        echo "No new version of ${NPM_PACKAGE_NAME} published. This is most likely because version ${NPM_PACKAGE_VERSION} already exists in NPM registry ${NPM_REGISTRY}."
+        exit 1
+      }
+  only:
+    - master
+
+publish_docs:
+  image: registry.svc/svyazcom/development-env:8
+  stage: publish
+  variables:
+    DOCS_DIR: "docs" # Путь, где лежат файлы документации в репозитории
+    DOCS_SERVER_UPLOAD_URL: "https://docs.svyazcom.ru/backend/upload/"
+  script:
+    - NPM_PACKAGE_VERSION="`(cat "package.json" | grep version | head -1 | awk "-F:" '{ print $2 }' | sed 's/[",]//g')`"
+    - cd $DOCS_DIR
+    - tar -czf docs.tar.gz *
+    - |
+      curl -X POST --location "$DOCS_SERVER_UPLOAD_URL" \
+      -H "Accept: application/json" \
+      -F id="$CI_PROJECT_ID" \
+      -F name="$CI_PROJECT_NAME" \
+      -F namespace="$CI_PROJECT_NAMESPACE" \
+      -F docs="@docs.tar.gz" \
+      -F version="$NPM_PACKAGE_VERSION"
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+
+# Сборка пакета для стадии deploy
+build_storybook:
+  stage: build
+  image: node:latest
+  variables:
+    GIT_STRATEGY: clone
+    GIT_SUBMODULE_STRATEGY: recursive
+    PACKAGE_NAME: 'ui-kit-web'
+  script:
+    # прописываем насильно версию в package.json
+    # (необходимо сделать это прежде всего, иначе npm ругнётся что Git working directory is not clean)
+    - npm --no-git-tag-version version $PACKAGE_VERSION
+
+    - npm install --production
+    - npm install @vue/cli
+    - npm run build-storybook -o dist
+    - cp -r ci/etc dist/ci_configs
+    - echo "PACKAGE_VERSION=$(node -p "require('./package.json').version")" >> build.env
+  artifacts:
+    name: '${CI_PROJECT_NAME}_`date +%Y%m%d-%H:%M:%S`'
+    paths:
+      - dist
+    reports:
+      dotenv: build.env
+  rules:
+    - when: manual
+
+# Этап создания и отправки пакета rpm в репозиторий
+deploy_storybook:
+  image: registry.svc/svyazcom/development-env:8
+  stage: deploy
+  variables:
+    PACKAGE_NAME: ui-kit-web
+    APP_PATH: ui-kit
+  script:
+    # создаем каталог для упаковки проекта и наполняем его
+    - mkdir -p package/storybook
+    - cp -r dist package/storybook
+    - ci/build.sh ${PACKAGE_NAME} ${PACKAGE_VERSION} ${APP_PATH}
+    - for pkg in rpmbuild/RPMS/*/*.rpm; do curl --upload-file $pkg "http://rpm.svc/download/index.php?filename=$(basename $pkg)&branch=$CI_COMMIT_REF_NAME"; done
+  artifacts:
+    name: '${CI_PROJECT_NAME}_`date +%Y%m%d-%H:%M:%S`'
+    paths:
+      - rpmbuild/RPMS/*/*.rpm
+  dependencies:
+    - build_storybook
+  rules:
+    - when: manual

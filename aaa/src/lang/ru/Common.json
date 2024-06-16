@@ -1,0 +1,29 @@
+{
+  "version": "Версия",
+  "versionsModal": {
+    "versions": "Версии",
+    "name": "Название"
+  },
+  "close": "Закрыть",
+  "collapseSidebar": "Скрыть меню",
+  "logout": "Покинуть судно",
+  "accessDenied": {
+    "title": "Доступ запрещен",
+    "message": "Свяжитесь с администратором системы, если доступ необходим"
+  },
+  "blankPage": {
+    "title": "Добро пожаловать",
+    "message": "Вы можете выбрать стартовую страницу по умолчанию в Профиле"
+  },
+  "fields": {
+    "loginEmail": "Логин (Email)",
+    "login": "Логин",
+    "password": "Пароль",
+    "newPassword": "Новый пароль",
+    "confirmPassword": "Подтверждение пароля",
+    "domain": "Домен"
+  },
+  "buttons": {
+    "save": "Сохранить"
+  }
+}

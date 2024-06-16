@@ -1,0 +1,32 @@
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-corner {
+    background: inherit;
+}
+
+::-webkit-scrollbar-track {
+    background: inherit;
+    border-left: 0;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--global-divider-color);
+    border: solid 1px inherit;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--global-divider-color);
+    border-radius: 4px;
+}
+
+::-moz-scrollbar {
+    width: 8px;
+}
+
+::-moz-scrollbar-track {
+    background: inherit;
+    border-left: 0;
+}

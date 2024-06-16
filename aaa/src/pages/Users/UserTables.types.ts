@@ -1,0 +1,1 @@
+export type IOnTableDeleteRow = (acceptCallback: () => any) => any

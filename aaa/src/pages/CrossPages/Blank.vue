@@ -1,0 +1,10 @@
+<script setup lang="ts">
+import SvPage from '@/components/SvPage/SvPage.vue';
+
+</script>
+
+<template>
+  <sv-page :title="$t('Common.blankPage.title')">
+    <div>{{ $t('Common.blankPage.message') }}</div>
+  </sv-page>
+</template>

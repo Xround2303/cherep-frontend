@@ -1,0 +1,11 @@
+{
+  "refDashboard": "Dashboard",
+  "refProfile": "Profile",
+  "refAdmin": "Administration",
+  "refUsers": "Users",
+  "refRoles": "Access roles",
+  "refHistoryActions": "Action log",
+  "refSessions": "User sessions",
+  "refStat": "Statistics",
+  "refPasswords": "Access to passwords"
+}

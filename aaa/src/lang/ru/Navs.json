@@ -1,0 +1,11 @@
+{
+  "refDashboard": "Информационная панель",
+  "refProfile": "Профиль",
+  "refAdmin": "Администрирование",
+  "refUsers": "Пользователи",
+  "refRoles": "Роли доступа",
+  "refHistoryActions": "История действий",
+  "refSessions": "Сессии пользователей",
+  "refStat": "Статистика",
+  "refPasswords": "Доступ к паролям"
+}
